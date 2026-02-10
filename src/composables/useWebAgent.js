@@ -42,12 +42,16 @@ function addLog(type, message) {
 async function createAgent() {
   const { WebAgent } = await import('browserdd/browser')
 
+  // Log the constructed URL for debugging
+  const fullBaseUrl = config.baseUrl.startsWith('/') ? window.location.origin + config.baseUrl : config.baseUrl;
+  console.log(`Creating agent with base URL: ${fullBaseUrl}`);
+  
   const instance = new WebAgent({
     llm: {
       provider: 'openai',
       model: config.model,
       apiKey: config.apiKey,
-      baseUrl: config.baseUrl.startsWith('/') ? window.location.origin + config.baseUrl : config.baseUrl,
+      baseUrl: fullBaseUrl,
       temperature: 0.7,
     },
     maxStepsPerSubtask: 10,
