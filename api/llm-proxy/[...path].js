@@ -2,6 +2,19 @@ export default async function handler(req, res) {
   // Vercel Serverless Function to proxy requests to an OpenAI-compatible API.
   // This replaces Vite's dev-only proxy, enabling production deployments.
 
+  // Handle CORS preflight requests
+  if (req.method === 'OPTIONS') {
+    res.setHeader('Access-Control-Allow-Credentials', 'true')
+    res.setHeader('Access-Control-Allow-Origin', '*')
+    res.setHeader('Access-Control-Allow-Methods', 'GET,DELETE,PATCH,POST,PUT,OPTIONS')
+    res.setHeader(
+      'Access-Control-Allow-Headers',
+      'X-CSRF-Token, X-Requested-With, Accept, Accept-Version, Content-Length, Content-MD5, Content-Type, Date, X-Api-Version, Authorization, X-User-ID'
+    );
+    res.status(200).end();
+    return;
+  }
+
   // Accept: /api/llm-proxy/v1/*  ->  ${LLM_BASE_URL}/v1/*
   const { path = [] } = req.query
   const upstreamBase = process.env.LLM_BASE_URL || process.env.OPENAI_BASE_URL
