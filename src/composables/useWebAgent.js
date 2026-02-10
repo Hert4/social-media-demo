@@ -1,4 +1,5 @@
 import { ref, reactive, shallowRef } from 'vue'
+import { PLANNER_PROMPT_WITH_CONTEXT, BROWSER_NAV_PROMPT_WITH_CONTEXT } from '../siteContext.js'
 
 // Config from environment variables (injected at build time via Vite)
 // Different .env files are loaded based on environment: .env.development or .env.production
@@ -56,6 +57,11 @@ async function createAgent() {
     maxSubtasksPerTask: 15,
     maxTotalSteps: 50,
     debug: true,
+    // Inject site-specific context into prompts
+    prompts: {
+      planner: PLANNER_PROMPT_WITH_CONTEXT,
+      browserNav: BROWSER_NAV_PROMPT_WITH_CONTEXT,
+    },
   })
 
   // Bind events
