@@ -3,7 +3,9 @@ import { ref, reactive, shallowRef } from 'vue'
 // Config from environment variables (injected at build time via Vite)
 // Copy .env.example -> .env and fill VITE_LLM_* values.
 const ENV_CONFIG = {
-  baseUrl: import.meta.env.VITE_LLM_BASE_URL || '/llm-proxy/v1',
+  // In production on Vercel, we must hit the Serverless Function under `/api/*`.
+  // Vite's `server.proxy` only works in `vite dev`.
+  baseUrl: import.meta.env.VITE_LLM_BASE_URL || '/api/llm-proxy/v1',
   apiKey: import.meta.env.VITE_LLM_API_KEY || '',
   model: import.meta.env.VITE_LLM_MODEL || 'gpt-5.2',
 }
