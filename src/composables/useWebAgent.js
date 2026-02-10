@@ -51,7 +51,7 @@ async function createAgent() {
       model: config.model,
       apiKey: config.apiKey,
       baseUrl: fullBaseUrl,
-      temperature: 0.3,
+      temperature: 0.1,
     },
     maxStepsPerSubtask: 10,
     maxSubtasksPerTask: 15,
@@ -69,6 +69,19 @@ async function createAgent() {
   })
 
   instance.on('task:plan', ({ plan }) => {
+    // Handle conversation mode - just respond, no tasks
+    if (plan.mode === 'conversation') {
+      addLog('response', plan.response || 'Tôi hiểu rồi.')
+      return
+    }
+
+    // Task mode - show plan and execute
+    if (plan.response) {
+      addLog('response', plan.response)
+    }
+    if (plan.thinking) {
+      addLog('thinking', plan.thinking)
+    }
     addLog('plan', `Plan created: ${plan.subtasks.length} subtasks`)
     plan.subtasks.forEach((st, i) => {
       addLog('plan', `  ${i + 1}. ${st.description}`)
