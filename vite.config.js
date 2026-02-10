@@ -11,7 +11,7 @@ export default defineConfig({
   server: {
     proxy: {
       '/llm-proxy': {
-        target: 'https://defend-diagnostic-remained-ladies.trycloudflare.com',
+        target: 'https://especially-rss-searched-villages.trycloudflare.com/v1/chat/completions',
         changeOrigin: true,
         secure: false,
         rewrite: (path) => path.replace(/^\/llm-proxy/, ''),
