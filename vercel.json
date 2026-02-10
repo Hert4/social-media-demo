@@ -2,13 +2,8 @@
   "buildCommand": "npm run build",
   "outputDirectory": "dist",
   "framework": "vite",
-  "functions": {
-    "api/llm-proxy/[...path].js": {
-      "runtime": "nodejs20.x"
-    }
-  },
   "rewrites": [
-    { "source": "/api/llm-proxy/:path*", "destination": "/api/llm-proxy/[...path]" },
+    { "source": "/api/llm-proxy/:path*", "destination": "/api/llm-proxy?path=:path*" },
     { "source": "/((?!api/).*)", "destination": "/index.html" }
   ]
 }
