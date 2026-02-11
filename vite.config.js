@@ -2,7 +2,7 @@ import { defineConfig } from 'vite'
 import vue from '@vitejs/plugin-vue'
 
 // Get the target URL from environment variable, fallback to default
-const targetUrl = process.env.LLM_BASE_URL || 'https://especially-rss-searched-villages.trycloudflare.com';
+const targetUrl = process.env.LLM_BASE_URL || 'http://test-k8s.misa.local/llm-gateway';
 
 export default defineConfig({
   plugins: [vue()],

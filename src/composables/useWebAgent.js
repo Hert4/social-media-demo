@@ -1,5 +1,5 @@
 import { ref, reactive, shallowRef } from 'vue'
-import { SITE_CONTEXT } from '../siteContext.js'
+import { SITE_CONTEXT, getSiteContext } from '../siteContext.js'
 
 // Config from environment variables (injected at build time via Vite)
 // Different .env files are loaded based on environment: .env.development or .env.production
@@ -45,6 +45,10 @@ async function createAgent() {
   const fullBaseUrl = config.baseUrl.startsWith('/') ? window.location.origin + config.baseUrl : config.baseUrl;
   console.log(`Creating agent with base URL: ${fullBaseUrl}`);
   
+  // Browser DOM adapter (used in the demo UI) cannot take screenshots.
+  // Only enable screenshots when running with a Playwright adapter (Node).
+  const canScreenshot = typeof window === 'undefined';
+
   const instance = new WebAgent({
     llm: {
       provider: 'openai',
@@ -53,13 +57,16 @@ async function createAgent() {
       baseUrl: fullBaseUrl,
       temperature: 0.1,
     },
-    maxStepsPerSubtask: 10,
-    maxSubtasksPerTask: 15,
+    maxStepsPerSubtask: 12,
+    maxSubtasksPerTask: 20,
     maxTotalSteps: 50,
+    executionMode: 'upfront',
+    screenshots: canScreenshot,
     debug: true,
     // Inject site-specific context (APPENDED to default prompts, not replacing)
     prompts: {
-      siteContext: SITE_CONTEXT,
+      // Use page-aware context when running in browser; fall back to static export otherwise
+      siteContext: typeof window !== 'undefined' ? getSiteContext(window.location.pathname) : SITE_CONTEXT,
     },
   })
 
@@ -97,8 +104,13 @@ async function createAgent() {
     addLog(result.success ? 'success' : 'error', `  [${icon}] Subtask done (${result.steps.length} steps)`)
   })
 
-  instance.on('subtask:error', ({ subtask, error: err }) => {
-    addLog('error', `  Subtask failed: ${err?.message || 'unknown'}`)
+  instance.on('subtask:error', ({ error: err }) => {
+    // Check if this is a user question (NEEDS_USER_CONFIRMATION or ask_user)
+    if (err?.code === 'NEEDS_USER_CONFIRMATION' || err?.recoverable) {
+      addLog('question', `🙋 ${err?.message || 'Bạn có muốn tôi thử cách khác không?'}`)
+    } else {
+      addLog('error', `  Subtask failed: ${err?.message || 'unknown'}`)
+    }
   })
 
   instance.on('action:complete', ({ result }) => {
@@ -116,7 +128,14 @@ async function createAgent() {
   })
 
   instance.on('error:recovery', ({ strategy }) => {
-    addLog('warn', `  Recovery strategy: ${strategy}`)
+    const strategyNames = {
+      retry: '🔄 Thử lại với cách khác',
+      alternative: '🔀 Dùng phương pháp thay thế',
+      skip: '⏭️ Bỏ qua bước này',
+      ask_user: '🙋 Hỏi người dùng',
+      abort: '⛔ Dừng lại',
+    }
+    addLog('warn', `  ${strategyNames[strategy] || strategy}`)
   })
 
   agent.value = instance
